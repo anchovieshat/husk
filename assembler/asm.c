@@ -16,6 +16,8 @@ int main(int arg_len, char **args) {
 	hm_insert(&ops, "LOAD", (void *)(LOAD + 1));
 	hm_insert(&ops, "ADD", (void *)(ADD + 1));
 	hm_insert(&ops, "OUT", (void *)(OUT + 1));
+	hm_insert(&ops, "SET", (void *)(SET + 1));
+	hm_insert(&ops, "STORE", (void *)(STORE + 1));
 
 	HashMap *reg = hm_init();
 	hm_insert(&reg, "A", (void *)(RegA + 1));

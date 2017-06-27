@@ -1,4 +1,4 @@
-LOAD A 'a'
+SET A 'a'
+STORE A 1
 LOAD B 1
-ADD A B
-OUT A 0
+OUT B 0
