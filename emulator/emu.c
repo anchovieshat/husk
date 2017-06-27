@@ -212,13 +212,6 @@ int main() {
 	BinFile *bin_file = read_bin_file("test.bin");
 	memcpy(cpu.mem, bin_file->data, bin_file->size);
 
-	/*
-	cpu.mem[0] = SET | (u64)RegA << 8 | (u64)'a' << 32;
-	cpu.mem[1] = STORE | (u64)RegA << 8 | (u64)1 << 32;
-	cpu.mem[2] = LOAD | (u64)RegB << 8 | (u64)1 << 32;
-	cpu.mem[3] = OUT | (u64)RegB << 8 | (u64)0 << 32;
-	*/
-
 	while (cpu.running && cpu.pc < MEM_SIZE) {
  		Instruction inst = parse_inst(&cpu);
 		exec_inst(inst, &cpu);
