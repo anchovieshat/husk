@@ -1,0 +1,4 @@
+*.swp
+*.bin
+synth_asm
+synth_core

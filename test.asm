@@ -1,0 +1,4 @@
+LOAD A 'a'
+LOAD B 1
+ADD A B
+OUT A 0
