@@ -12,8 +12,7 @@ use husk_lib::get_op_type;
 struct CPUState {
     mem: Vec<u64>,
     pc: usize,
-    reg: [u64; 2],
-    sp: u64,
+    reg: [u64; 3],
     running: bool
 }
 
@@ -22,8 +21,7 @@ impl CPUState {
         CPUState {
             mem: Vec::new(),
             pc: 0,
-            reg: [0, 0],
-            sp: 0,
+            reg: [0, 0, 0],
             running: true,
         }
     }
@@ -67,13 +65,15 @@ impl CPUState {
         }
 
         match op {
+            Op::NOP => {},
+            Op::SET => { self.reg[reg1_hex as usize] = data; },
+            Op::LOAD => { self.reg[reg2_hex as usize] = self.mem[reg1_hex as usize]; },
+            Op::STORE => { self.mem[reg2_hex as usize] = self.reg[reg1_hex as usize]; },
+            Op::LOADI => { self.reg[reg1_hex as usize] = self.mem[data as usize]; },
+            Op::STOREI => { self.mem[data as usize] = self.reg[reg1_hex as usize]; },
             Op::ADD => { self.reg[reg1_hex as usize] += self.reg[reg2_hex as usize]; },
             Op::SUB => { self.reg[reg1_hex as usize] -= self.reg[reg2_hex as usize]; },
-            Op::SET => { self.reg[reg1_hex as usize] = data; },
-            Op::LOAD => { self.reg[reg1_hex as usize] = self.mem[data as usize]; },
-            Op::STORE => { self.mem[data as usize] = self.reg[reg1_hex as usize]; },
             Op::OUT => { println!("{}", self.reg[reg1_hex as usize] as u8 as char); },
-            Op::NOP => {},
             Op::HALT => { self.running = false; },
             _ => { println!("Op not implemented!"); self.running = false; },
         }
