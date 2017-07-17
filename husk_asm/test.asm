@@ -1,4 +1,0 @@
-SET A 'a'
-STOREI A 1
-LOADI B 1
-OUT B 0

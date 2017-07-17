@@ -1,0 +1,4 @@
+SET A 'a'
+STORE A 1
+LOAD B 1
+OUT B 0

@@ -1,6 +1,0 @@
-[package]
-name = "husk_lib"
-version = "0.1.0"
-authors = ["Colin Davidson <colrdavidson@gmail.com>"]
-
-[dependencies]
