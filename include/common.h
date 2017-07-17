@@ -71,4 +71,14 @@ char *file_to_string(const char *filename) {
 	return file_string;
 }
 
+bool str_eq_len(char *str1, char *str2, u64 len) {
+	for (u64 i = 0; i < len; i++) {
+		if (str1[i] != str2[i]) {
+			return false;
+		}
+	}
+
+	return true;
+}
+
 #endif

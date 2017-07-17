@@ -22,73 +22,6 @@ typedef struct CPUState {
 	bool running;
 } CPUState;
 
-const char *get_op_str(u8 op) {
-	switch (op) {
-		case NOP: { return "NOP"; } break;
-		case LOAD: { return "LOAD"; } break;
-		case LOADI: { return "LOADI"; } break;
-		case STORE: { return "STORE"; } break;
-		case STOREI: { return "STOREI"; } break;
-		case SET: { return "SET"; } break;
-		case DEREF: { return "DEREF"; } break;
-		case ADD: { return "ADD"; } break;
-		case SUB: { return "SUB"; } break;
-		case MUL: { return "MUL"; } break;
-		case DIV: { return "DIV"; } break;
-		case MOD: { return "MOD"; } break;
-		case INC: { return "INC"; } break;
-		case DEC: { return "DEC"; } break;
-		case GE: { return "GE"; } break;
-		case LE: { return "LE"; } break;
-		case EQ: { return "EQ"; } break;
-		case ISZERO: { return "ISZERO"; } break;
-		case JMP: { return "JMP"; } break;
-		case JZ: { return "JZ"; } break;
-		case JG: { return "JG"; } break;
-		case JL: { return "JL"; } break;
-		case JE: { return "JE"; } break;
-		case JNE: { return "JNE"; } break;
-		case JERR: { return "JERR"; } break;
-		case RET: { return "RET"; } break;
-		case SWAP: { return "SWAP"; } break;
-		case NOT: { return "NOT"; } break;
-		case AND: { return "AND"; } break;
-		case OR: { return "OR"; } break;
-		case XOR: { return "XOR"; } break;
-		case SHL: { return "SHL"; } break;
-		case SHR: { return "SHR"; } break;
-		case IN: { return "IN"; } break;
-		case OUT: { return "OUT"; } break;
-		case HALT: { return "HALT"; } break;
-		case ERROR: { return "ERROR"; } break;
-		default: { return "Invalid OP"; } break;
-	}
-}
-
-const char *get_reg_str(u8 reg) {
-	switch (reg) {
-		case RegA: { return "A"; } break;
-		case RegB: { return "B"; } break;
-		default: { return "Invalid Reg"; } break;
-	}
-}
-
-OPType get_op_type(u8 op) {
-    switch (op) {
-		case NOP: { return N; } break;
-		case SET: { return I; } break;
-		case LOAD: { return I; } break;
-		case LOADI: { return I; } break;
-		case STORE: { return I; } break;
-		case STOREI: { return I; } break;
-		case OUT: { return I; } break;
-		case ADD: { return R; } break;
-		case HALT: { return H; } break;
-		case ERROR: { return E; } break;
-		default: { return E; } break;
-	}
-}
-
 Instruction load_inst(CPUState *cpu) {
 	u64 bytecode = cpu->mem[cpu->pc];
 	Instruction i;
@@ -100,9 +33,11 @@ Instruction load_inst(CPUState *cpu) {
 	return i;
 }
 
-Instruction parse_inst(CPUState *cpu) {
-    Instruction inst = load_inst(cpu);
+void print_cpu_state(CPUState *cpu) {
+	printf("\t[%llu] Reg A: %d, Reg B: %d\n", cpu->pc, cpu->reg[0], cpu->reg[1]);
+}
 
+void pretty_print_inst(Instruction inst, CPUState *cpu) {
 	const char *op_str = get_op_str(inst.op);
 	const char *reg1_str = get_reg_str(inst.reg1);
 	switch (inst.type) {
@@ -115,10 +50,14 @@ Instruction parse_inst(CPUState *cpu) {
 		} break;
 		case H: { } break;
 		default: {
-			cpu->running = false;
-			printf("DECODING ERROR!\n");
+			printf("Decoding error!\n");
 		} break;
 	}
+}
+
+Instruction parse_inst(CPUState *cpu) {
+    Instruction inst = load_inst(cpu);
+    //pretty_print_inst(inst, cpu);
 
 	return inst;
 }
@@ -139,7 +78,14 @@ void cpu_load(CPUState *cpu, u8 r_idx, u32 src) {
 void cpu_out(CPUState *cpu, u8 r_idx, u32 dest) {
 	u32 val = cpu->reg[r_idx];
 	cpu->mmio[dest] = val;
-	printf("%c\n", val);
+}
+
+void cpu_in(CPUState *cpu, u8 r_idx, u32 dest) {
+	if (dest == 1) {
+		cpu->mmio[dest] = getchar();
+	}
+
+	cpu->reg[r_idx] = cpu->mmio[dest];
 }
 
 void cpu_add(CPUState *cpu, u8 r_idx1, u8 r_idx2) {
@@ -148,6 +94,13 @@ void cpu_add(CPUState *cpu, u8 r_idx1, u8 r_idx2) {
 
 void cpu_sub(CPUState *cpu, u8 r_idx1, u8 r_idx2) {
 	cpu->reg[r_idx1] -= cpu->reg[r_idx2];
+}
+
+void handle_mmio(u64 *mmio) {
+	if (mmio[0] != 0) {
+		printf("%c", (int)mmio[0]);
+		mmio[0] = 0;
+	}
 }
 
 void exec_inst(Instruction inst, CPUState *cpu) {
@@ -169,6 +122,9 @@ void exec_inst(Instruction inst, CPUState *cpu) {
 		} break;
 		case OUT: {
 			cpu_out(cpu, inst.reg1, inst.data);
+		} break;
+		case IN: {
+			cpu_in(cpu, inst.reg1, inst.data);
 		} break;
 		case HALT: {
 			cpu->running = false;
@@ -202,10 +158,6 @@ CPUState build_cpu() {
 	return cpu;
 }
 
-void print_cpu_state(CPUState *cpu) {
-	printf("\t[%llu] Reg A: %d, Reg B: %d\n", cpu->pc, cpu->reg[0], cpu->reg[1]);
-}
-
 int main() {
     CPUState cpu = build_cpu();
 
@@ -215,6 +167,7 @@ int main() {
 	while (cpu.running && cpu.pc < MEM_SIZE) {
  		Instruction inst = parse_inst(&cpu);
 		exec_inst(inst, &cpu);
+		handle_mmio(cpu.mmio);
 
 		cpu.ticks++;
 	}

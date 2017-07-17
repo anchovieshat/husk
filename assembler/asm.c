@@ -18,6 +18,7 @@ int main(int arg_len, char **args) {
 	hm_insert(&ops, "OUT", (void *)(OUT + 1));
 	hm_insert(&ops, "SET", (void *)(SET + 1));
 	hm_insert(&ops, "STORE", (void *)(STORE + 1));
+	hm_insert(&ops, "IN", (void *)(IN + 1));
 
 	HashMap *reg = hm_init();
 	hm_insert(&reg, "A", (void *)(RegA + 1));
@@ -61,14 +62,22 @@ int main(int arg_len, char **args) {
 		u64 *reg2_hex_ptr = hm_get(reg, arg2);
 		if (reg2_hex_ptr == NULL) {
 			u64 arg2_val = strtol(arg2, (char **)NULL, 10);
+
+			char *newline_str = "\'\\n\'";
+
 			if (errno == EINVAL) {
+				// Single char
 				if (arg2[0] == '\'' && arg2[2] == '\'') {
 					arg2_val = arg2[1];
-					errno = 0;
+				// Newline character
+				} else if (str_eq_len(arg2, newline_str, strlen(newline_str))) {
+					arg2_val = '\n';
 				} else {
 					printf("Invalid argument %s\n", arg2);
 					break;
 				}
+
+				errno = 0;
 			}
 			emit = inst_hex | reg1_hex << 8 | arg2_val << 32;
 		} else {

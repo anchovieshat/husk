@@ -1,4 +1,6 @@
 SET A 'a'
-STORE A 1
-LOAD B 1
-OUT B 0
+OUT A 0
+SET A '\n'
+OUT A 0
+IN A 1
+OUT A 0
